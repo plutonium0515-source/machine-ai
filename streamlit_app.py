@@ -88,15 +88,63 @@ elif st.session_state.step == 2:
             st.rerun()
 
 # -------------------------
-# 3단계 (임시)
+# 3단계
 # -------------------------
 elif st.session_state.step == 3:
     st.title("🤖 로봇 제작 알고리즘")
-    st.header("3단계: 기능 정의 (다음 단계)")
+    st.header("3단계: 기능 정의")
 
-    st.subheader("2단계 결과")
+    st.subheader("🔹 2단계 요약")
     st.json(st.session_state.step2_data)
 
-    if st.button("이전 단계"):
-        st.session_state.step = 2
+    st.divider()
+
+    # 기본 기능 자동 생성
+    기본기능 = [
+        "직진할 수 있어야 한다",
+        "방향을 바꿀 수 있어야 한다",
+        "멈출 수 있어야 한다"
+    ]
+
+    if "functions" not in st.session_state:
+        st.session_state.functions = 기본기능.copy()
+
+    st.subheader("📌 현재 기능 목록")
+
+    제거대상 = []
+    for i, f in enumerate(st.session_state.functions):
+        col1, col2 = st.columns([8, 1])
+        with col1:
+            st.write(f"{i+1}. {f}")
+        with col2:
+            if st.button("❌", key=f"del_{i}"):
+                제거대상.append(f)
+
+    for f in 제거대상:
+        st.session_state.functions.remove(f)
         st.rerun()
+
+    st.divider()
+
+    st.subheader("➕ 기능 추가")
+    new_func = st.text_input("추가할 기능을 동작 형태로 입력")
+
+    if st.button("기능 추가"):
+        if new_func.strip():
+            st.session_state.functions.append(new_func)
+            st.rerun()
+
+    st.divider()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("이전 단계"):
+            st.session_state.step = 2
+            st.rerun()
+
+    with col2:
+        if st.button("다음 단계"):
+            st.session_state.step3_data = st.session_state.functions
+            st.session_state.step = 4
+            st.rerun()
