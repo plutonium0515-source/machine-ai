@@ -88,54 +88,80 @@ elif st.session_state.step == 2:
             st.rerun()
 
 # -------------------------
-# 3단계
+# 3단계: 기능 정의
 # -------------------------
 elif st.session_state.step == 3:
     st.title("🤖 로봇 제작 알고리즘")
     st.header("3단계: 기능 정의")
 
+    # -------------------------
+    # 2단계 요약
+    # -------------------------
     st.subheader("🔹 2단계 요약")
     st.json(st.session_state.step2_data)
-
     st.divider()
 
-    # 기본 기능 자동 생성
-    기본기능 = [
-        "직진할 수 있어야 한다",
-        "방향을 바꿀 수 있어야 한다",
-        "멈출 수 있어야 한다"
-    ]
-
+    # -------------------------
+    # 기본 기능 자동 생성 (최초 1회)
+    # -------------------------
     if "functions" not in st.session_state:
-        st.session_state.functions = 기본기능.copy()
+        st.session_state.functions = [
+            {"text": "직진할 수 있어야 한다", "enabled": True},
+            {"text": "방향을 바꿀 수 있어야 한다", "enabled": True},
+            {"text": "멈출 수 있어야 한다", "enabled": True},
+        ]
 
-    st.subheader("📌 현재 기능 목록")
+    # -------------------------
+    # 기능 목록 (활성 / 비활성)
+    # -------------------------
+    st.subheader("📌 기능 목록 (활성 / 비활성 가능)")
 
-    제거대상 = []
-    for i, f in enumerate(st.session_state.functions):
+    for i, func in enumerate(st.session_state.functions):
         col1, col2 = st.columns([8, 1])
+
         with col1:
-            st.write(f"{i+1}. {f}")
+            if func["enabled"]:
+                st.markdown(f"**{i+1}. {func['text']}**")
+            else:
+                st.markdown(
+                    f"<span style='color:gray; text-decoration:line-through;'>"
+                    f"{i+1}. {func['text']}</span>",
+                    unsafe_allow_html=True
+                )
+
         with col2:
-            if st.button("❌", key=f"del_{i}"):
-                제거대상.append(f)
+            if func["enabled"]:
+                if st.button("⛔", key=f"off_{i}"):
+                    st.session_state.functions[i]["enabled"] = False
+                    st.rerun()
+            else:
+                if st.button("✅", key=f"on_{i}"):
+                    st.session_state.functions[i]["enabled"] = True
+                    st.rerun()
 
-    for f in 제거대상:
-        st.session_state.functions.remove(f)
-        st.rerun()
-
+    # -------------------------
+    # 기능 추가
+    # -------------------------
     st.divider()
-
     st.subheader("➕ 기능 추가")
-    new_func = st.text_input("추가할 기능을 동작 형태로 입력")
+
+    new_func = st.text_input(
+        "추가할 기능을 동작 형태로 입력",
+        placeholder="예: 원격 조종이 가능해야 한다"
+    )
 
     if st.button("기능 추가"):
         if new_func.strip():
-            st.session_state.functions.append(new_func)
+            st.session_state.functions.append({
+                "text": new_func,
+                "enabled": True
+            })
             st.rerun()
 
+    # -------------------------
+    # 단계 이동
+    # -------------------------
     st.divider()
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -145,6 +171,9 @@ elif st.session_state.step == 3:
 
     with col2:
         if st.button("다음 단계"):
-            st.session_state.step3_data = st.session_state.functions
+            # 활성 기능만 다음 단계로 전달
+            st.session_state.step3_data = [
+                f["text"] for f in st.session_state.functions if f["enabled"]
+            ]
             st.session_state.step = 4
             st.rerun()
